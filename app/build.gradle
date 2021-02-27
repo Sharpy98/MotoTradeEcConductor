@@ -1,0 +1,94 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.henryalmeida.mototradeecconductor"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    implementation 'com.google.maps.android:android-maps-utils:0.4+'
+
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation platform('com.google.firebase:firebase-bom:26.3.0')
+
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
+    // Declare the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-auth'
+    // Declare the dependency for the Realtime Database library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.firebase:geofire-android:2.2.0'
+    // Also declare the dependency for the Google Play services library and specify its version
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
+
+    implementation 'com.facebook.android:facebook-android-sdk:[4,5)'
+
+    //Barra de progreso
+    implementation 'com.github.d-max:spots-dialog:1.1@aar'
+
+    // Para los mensajes push
+   // implementation 'com.google.firebase:firebase-messaging:20.1.0'
+    implementation 'com.google.firebase:firebase-messaging'
+
+    // Para trazar las rutas y me de la distancia y tiempo
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+
+    // Para poner animaciones
+    //implementation 'com.airbnb.android.lottie:2.8.0'
+    def lottieVersion = "3.4.0"
+    implementation "com.airbnb.android:lottie:$lottieVersion"
+
+    // Para subir fotos al firebase
+    implementation 'com.google.firebase:firebase-storage:19.1.1'
+    // Para comprimir las imagenes
+    implementation 'id.zelory:compressor:2.1.0'
+
+    // Para mostrar la imagen del condutor y cliente en el booking
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+
+    // Para usar en los card
+    implementation 'com.firebaseui:firebase-ui-database:6.2.0'
+
+    // Mejores diseños librerias
+    implementation 'com.github.florent37:shapeofview:1.3.2'
+    implementation 'de.hdodenhof:circleimageview:3.1.0'// Circulo
+
+}
+
+apply plugin: 'com.google.gms.google-services'

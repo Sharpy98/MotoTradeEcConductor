@@ -1,0 +1,85 @@
+{
+  "project_info": {
+    "project_number": "444250646381",
+    "firebase_url": "https://mototradeecv01-default-rtdb.firebaseio.com",
+    "project_id": "mototradeecv01",
+    "storage_bucket": "mototradeecv01.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:444250646381:android:9c031d07168c62cda1dc64",
+        "android_client_info": {
+          "package_name": "com.henryalmeida.mototradeec"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "444250646381-tj5ecrpe08h4afa09i074fjm3n31vpoe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.henryalmeida.mototradeec",
+            "certificate_hash": "e9b3e482a2527a8ba0154b087c9f99ce0bf993b3"
+          }
+        },
+        {
+          "client_id": "444250646381-kpnumm5ivt9tjln9ufi5jvp2nfr15sa7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCT6lsutHuappDqzkDeKL5o7JPdBmnCRQU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "444250646381-kpnumm5ivt9tjln9ufi5jvp2nfr15sa7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:444250646381:android:887c33399633e435a1dc64",
+        "android_client_info": {
+          "package_name": "com.henryalmeida.mototradeecconductor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "444250646381-vq7j96u2svq6ijt99r4ib6na7s7cnfhj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.henryalmeida.mototradeecconductor",
+            "certificate_hash": "e9b3e482a2527a8ba0154b087c9f99ce0bf993b3"
+          }
+        },
+        {
+          "client_id": "444250646381-kpnumm5ivt9tjln9ufi5jvp2nfr15sa7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCT6lsutHuappDqzkDeKL5o7JPdBmnCRQU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "444250646381-kpnumm5ivt9tjln9ufi5jvp2nfr15sa7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

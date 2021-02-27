@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.henryalmeida.mototradeecconductor">
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MotoTradeEc">
+        <activity android:name=".activities.Route.MapDriverBookingRouteActivity"></activity>
+        <activity android:name=".activities.Route.NotificationBookingRouteActivity" />
+        <activity android:name=".activities.HistoryBookingDetailDriverActivity" />
+        <activity
+            android:name=".HistoryBookingDriverActivity"
+            android:parentActivityName=".activities.MapDriver" />
+        <activity
+            android:name=".activities.UpdateProfileDriverActivity"
+            android:parentActivityName=".activities.MapDriver" />
+        <activity android:name=".activities.NotificationBookingActivity" />
+        <activity android:name=".CalificationClientActivity" />
+        <activity android:name=".activities.MapDriverBooking" />
+        <activity android:name=".activities.MapDriver" />
+        <activity
+            android:name=".activities.CreateAcount"
+            android:parentActivityName=".activities.Login" />
+        <activity
+            android:name=".activities.Login"
+            android:parentActivityName=".activities.MainActivity" />
+        <activity android:name=".activities.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <receiver
+            android:name=".receivers.AcceptReceiver"
+            android:enabled="true" />
+        <receiver
+            android:name=".receivers.CancelReceiver"
+            android:enabled="true" />
+
+        <service android:name=".services.MyFirebaseMessagingClient">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <service android:name=".services.ForegroundSrevice"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="location"/>
+    </application>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+</manifest>

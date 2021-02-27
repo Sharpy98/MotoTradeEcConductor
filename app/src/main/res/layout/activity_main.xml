@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.MainActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/fondo_mototrade" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+
+        <ImageView
+            android:layout_width="291dp"
+            android:layout_height="83dp"
+            android:layout_marginBottom="50dp"
+            android:src="@drawable/marca" />
+
+        <Button
+            android:id="@+id/btn_IniciarSesion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="30dp"
+            android:background="@drawable/btn_redondeado_white"
+            android:elevation="5dp"
+            android:text="INICIAR SESIÓN"
+            android:textColor="#010101"
+            android:textSize="16dp"
+            android:onClick="pass_Login"/>
+        <!--android:textColor="#403f3f"-->
+
+        <Button
+            android:id="@+id/btn_IniciarFacebook"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="30dp"
+            android:background="@drawable/btn_facebook"
+            android:elevation="5dp"
+            android:drawableLeft="@drawable/facebook_blanco"
+            android:text="Iniciar con facebook"
+            android:textColor="#fff"
+            android:textSize="16dp"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"/>
+
+        <Button
+            android:src="@drawable/google"
+            android:id="@+id/btn_IniciarGoogle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="30dp"
+            android:background="@drawable/btn_redondeado_white"
+            android:drawableStart="@drawable/google"
+            android:elevation="5dp"
+            android:text="Iniciar con Google"
+            android:textColor="@color/black"
+            android:textSize="16dp"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="20dp"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Al continuar, aceptas nuestros "
+                android:textSize="12dp"
+                android:textColor="@color/black"
+                />
+
+            <Button
+                android:id="@+id/btn_TerminosCodiciones"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginLeft="1dp"
+                android:background="@android:color/transparent"
+                android:textSize="10dp"
+                android:text="Términos y condiciones"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="368dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="y "
+                android:textColor="@color/black"
+                android:textSize="12dp" />
+
+            <Button
+                android:id="@+id/btn_PoliticaPrivacidad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="1dp"
+                android:background="@android:color/transparent"
+                android:text="Política de privacidad"
+                android:textSize="10dp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+
+</RelativeLayout>

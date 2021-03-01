@@ -54,6 +54,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.henryalmeida.mototradeecconductor.CalificationClientActivity;
 import com.henryalmeida.mototradeecconductor.R;
+import com.henryalmeida.mototradeecconductor.activities.MapDriver;
 import com.henryalmeida.mototradeecconductor.activities.MapDriverBooking;
 import com.henryalmeida.mototradeecconductor.models.FCMBody;
 import com.henryalmeida.mototradeecconductor.models.FCMResponse;
@@ -107,9 +108,11 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
     private TextView tvPhoneOrigin;
     private TextView tvOrigin;
     private TextView tvDestination;
+    private TextView tvTime;
 
     private Button btnStartBooking;
     private Button btnFinishBooking;
+    private Button btnCancel;
 
     private ImageView mImageViewBooking;
 
@@ -128,7 +131,6 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
     private LatLng mDestinationLatLng9;
     private LatLng mDestinationLatLng10;
 
-    TextView tvTime;
     private GoogleApiProvider mGooglePrvider;
 
     private List<LatLng> mPolylineList;
@@ -139,7 +141,7 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
     // Para que llame una sola vez a la habilitacion del boton
     private boolean mIsCloseToClient = false;
 
-
+    double mDistanceInMeter = 1;
     int mMinutes = 0;
     int mSeconds = 0;
     boolean mSecondIsOver = false;
@@ -189,6 +191,14 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                     if(mMarker != null){
                         mMarker.remove();
                     }
+
+                    if (mRideStar){
+                        mDistanceInMeter = mDistanceInMeter + mPreviusLocation.distanceTo(location);
+                        Log.d("DISTANCIA", "Distancia recorrida" + mDistanceInMeter );
+                    }
+                    mPreviusLocation = location; // PARA SABER LA DISCTANCIA
+
+
                     // Colocamos una imagen para que salga en el mapa con la localizacion
                     mMarker = mMap.addMarker(new MarkerOptions().position(
                             new LatLng(location.getLatitude(),location.getLongitude())
@@ -248,6 +258,8 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
         mImageViewBooking = findViewById(R.id.ivClientBooking);
         tvTime = findViewById(R.id.tv_Time);
 
+        btnCancel = findViewById(R.id.btnCancelBooking);
+
         mExtraClientId = getIntent().getStringExtra("idClient");
 
         // Para trazar la ruta del chofer con el cliente
@@ -255,6 +267,13 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
         // Metodo para obtener los datos del cliente
         getClient();
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CancelDelivery();
+            }
+        });
 
         btnStartBooking.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -341,11 +360,7 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                     mHandler.removeCallbacks(runnable); // deja de escuchar para que pare el temporizador
                 }
 
-                Intent intent =  new Intent(MapDriverBookingRouteActivity.this, CalificationClientActivity.class);
-                intent.putExtra("idClient",mExtraClientId);
-                intent.putExtra("numDelivery",numDelivery);
-                startActivity(intent);
-                finish();
+                calculateRide();
             }
         }) ;
 
@@ -354,13 +369,59 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
     }
 
+    private void calculateRide() {
+
+        mClientBookingProvider.updateStatus(mExtraClientId,"finish").addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Intent intent =  new Intent(MapDriverBookingRouteActivity.this, CalificationClientActivity.class);
+                intent.putExtra("idClient",mExtraClientId);
+                intent.putExtra("numDelivery",numDelivery);
+                startActivity(intent);
+                finish();
+            }
+        });
+    }
+
+    private void CancelDelivery(){
+
+        mClientBookingProvider.updateStatus(mExtraClientId,"cancel").addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+
+                mIsFinishBooking = true;
+
+                mEditor.clear().commit();
+                sendNotification("Viaje cancelado");
+
+
+                if(mFusedLocation != null){
+                    // Ubicacion
+                    mFusedLocation.removeLocationUpdates(mLocationCallback);
+                }
+                // Nodo eliminado
+                mGeofireProvider.removeLocation(mAuthProvider.getId());
+
+                if(mHandler != null) {
+                    mHandler.removeCallbacks(runnable); // deja de escuchar para que pare el temporizador
+                }
+
+                Intent intent = new Intent(MapDriverBookingRouteActivity.this, MapDriver.class);
+                startActivity(intent);
+                finish();
+
+            }
+        });
+
+    }
+
     private void startBooking() {
-
-        mEditor.putString("status","start");
-        mEditor.putString("idClient",mExtraClientId);
-        mEditor.apply();
-
         if (numDelivery.equals("2")){
+
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
+
             // Cambiamos el estado del pedido a iniciar
             mClientBookingProvider.updateStatus(mExtraClientId,"start");
             btnStartBooking.setVisibility(View.GONE);
@@ -380,6 +441,10 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
             mHandler.postDelayed(runnable,1000);// Llamar al cronometro
         }
         else if (numDelivery.equals("3")){
+
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
 
             // Cambiamos el estado del pedido a iniciar
             mClientBookingProvider.updateStatus(mExtraClientId,"start");
@@ -402,6 +467,11 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
         }
         else if (numDelivery.equals("4")){
+
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
+
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino1").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng2).title("Destino2").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng3).title("Destino3").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
@@ -426,6 +496,10 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
             mHandler.postDelayed(runnable,1000);// Llamar al cronometro
         }
         else if (numDelivery.equals("5")){
+
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino1").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng2).title("Destino2").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng3).title("Destino3").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
@@ -452,6 +526,10 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
             mHandler.postDelayed(runnable,1000);// Llamar al cronometro
         }
         else if (numDelivery.equals("6")){
+
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino1").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng2).title("Destino2").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng3).title("Destino3").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
@@ -480,6 +558,9 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
             mHandler.postDelayed(runnable,1000);// Llamar al cronometro
         }
         else if (numDelivery.equals("7")){
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino1").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng2).title("Destino2").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng3).title("Destino3").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
@@ -512,6 +593,9 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
         }
         else if (numDelivery.equals("8")){
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino1").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng2).title("Destino2").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng3).title("Destino3").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
@@ -545,6 +629,9 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
         }
         else if (numDelivery.equals("9")){
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino1").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng2).title("Destino2").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng3).title("Destino3").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
@@ -580,6 +667,9 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
         }
         else if (numDelivery.equals("10")){
+            mEditor.putString("status","start");
+            mEditor.putString("idClient",mExtraClientId);
+            mEditor.apply();
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino1").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng2).title("Destino2").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
             mMap.addMarker(new MarkerOptions().position(mDestinationLatLng3).title("Destino3").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
@@ -621,6 +711,21 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);
+    }
+
+    // Metodo en el cual se va a medir la distancia para verificar que el conductor inicie el pedido
+    private double getDisctanceBetween(LatLng clientLatLng, LatLng driverLatLng){
+        double distance = 0;
+        Location clientLocation = new Location("");
+        Location driverLocation = new Location("");
+        clientLocation.setLatitude(clientLatLng.latitude);
+        clientLocation.setLatitude(clientLatLng.longitude);
+        driverLocation.setLatitude(driverLatLng.latitude);
+        driverLocation.setLatitude(driverLatLng.longitude);
+
+        // Distancia que existe entre el cliente y el condutor
+        distance = clientLocation.distanceTo(driverLocation);
+        return distance;
     }
 
     private void getClientBooking() {
@@ -692,9 +797,29 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
+
                     }
                     else if (numDelivery.equals("4")){
                         // Destino a donde se dirige el cliente
@@ -724,9 +849,27 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
                     }
                     else if (numDelivery.equals("5")){
                         // Destino a donde se dirige el cliente
@@ -760,9 +903,27 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
                     }
                     else if (numDelivery.equals("6")){
                         // Destino a donde se dirige el cliente
@@ -800,9 +961,27 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
                     }
                     else if (numDelivery.equals("7")){
                         // Destino a donde se dirige el cliente
@@ -844,9 +1023,27 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
 
                     }
                     else if (numDelivery.equals("8")){
@@ -892,9 +1089,27 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
                     }
                     else if (numDelivery.equals("9")){
                         // Destino a donde se dirige el cliente
@@ -944,9 +1159,27 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
                     }
                     else if (numDelivery.equals("10")){
                         // Destino a donde se dirige el cliente
@@ -1000,9 +1233,27 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                         tvOrigin.setText("Recoger en: " + origin);
                         tvDestination.setText("Entregar en: " + destination);
 
-                        // Añadir un marcador
-                        mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
-                        drawRoute(mOrigenLatLng);
+                        mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
+                        mEditor = mPref.edit();
+                        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+                        String status = mPref.getString("status","");
+
+                        if (status.equals("start")){
+
+                            //String mExtraPrice = getIntent().getStringExtra("price");
+                            //double mExtraPriceKm = getIntent().getDoubleExtra("priceKm",0);
+                            startBooking(); // Si ya inicio el viaje va a trazar la ruta a la posicion de destino
+                            //startBooking();
+                        }
+                        else {
+                            // ESTE VALOR SE ALMACENA CUANDO EL CONDUCTOR INICIA POR PRIMERA VEZ EL VIAJE
+                            mEditor.putString("status","ride");
+                            mEditor.putString("idClient",mExtraClientId);
+                            mEditor.apply();// guarda informacion en el celular
+                            // Añadir un marcador
+                            mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
+                            drawRoute(mOrigenLatLng);
+                        }
                     }
                 }
             }
@@ -1086,24 +1337,6 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
         });
     }
 
-
-    private void updateLocation(){
-        if(mAuthProvider.existSession() && mCurrentLatLng !=null){
-            mGeofireProvider.saveLocation(mAuthProvider.getId(),mCurrentLatLng);
-            if(!mIsCloseToClient){
-                if (mOrigenLatLng != null && mCurrentLatLng != null){
-                    double distance = getDisctanceBetween(mOrigenLatLng,mCurrentLatLng); // METROS
-                    if(distance <= 200){
-                        //btnStartBooking.setEnabled(true);
-                        mIsCloseToClient = true;
-                        Toast.makeText(this,"Estas cerca a la posición de recogida ",Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        }
-    }
-
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -1123,19 +1356,142 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
     }
 
-    // Metodo en el cual se va a medir la distancia para verificar que el conductor inicie el pedido
-    private double getDisctanceBetween(LatLng clientLatLng, LatLng driverLatLng){
-        double distance = 0;
-        Location clientLocation = new Location("");
-        Location driverLocation = new Location("");
-        clientLocation.setLatitude(clientLatLng.latitude);
-        clientLocation.setLatitude(clientLatLng.longitude);
-        driverLocation.setLatitude(driverLatLng.latitude);
-        driverLocation.setLatitude(driverLatLng.longitude);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED) {
+                    if (gpsActived()){
+                        mFusedLocation.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+                        // Si quiero utilizar el punto azul y tendriamos que poner en todos los mFused menos en disconect
+                        // PAra obtener el punto exacto
+                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            return;
+                        }
+                        mMap.setMyLocationEnabled(false);
+                    }
+                    else {
+                        showAlertDialogNOGPS();
+                    }
+                } else {
+                    checkLocationPermission();
+                }
+            } else {
+                checkLocationPermission();
+            }
+        }
+    }
 
-        // Distancia que existe entre el cliente y el condutor
-        distance = clientLocation.distanceTo(driverLocation);
-        return distance;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SETTINGS_REQUEST_CODE && gpsActived()) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            mFusedLocation.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
+        }
+        else {
+            showAlertDialogNOGPS();
+        }
+    }
+
+
+    private void showAlertDialogNOGPS(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Por favor activa tu ubicación para continuar")
+                .setPositiveButton("Configuraciones", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),SETTINGS_REQUEST_CODE);
+                    }
+                }).create().show();
+    }
+
+    // Para saber si tiene activado la ubicacion
+    private boolean gpsActived(){
+        boolean isActive = false;
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            isActive = true;
+        }
+        return isActive;
+    }
+
+    private  void disconnect(){
+        if(mFusedLocation!=null){
+            mFusedLocation.removeLocationUpdates(mLocationCallback);
+            if (mAuthProvider.existSession()){
+                mGeofireProvider.removeLocation(mAuthProvider.getId());
+            }
+        }
+        else{
+            Toast.makeText(this,"No te puedes desconectar",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void startLocation(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED){
+                if(gpsActived()){
+                    mFusedLocation.requestLocationUpdates(mLocationRequest,mLocationCallback,Looper.myLooper());
+                }
+                else {
+                    showAlertDialogNOGPS();
+                }
+            }
+            else {
+                checkLocationPermission();
+            }
+        }
+        else {
+            if (gpsActived()){
+                mFusedLocation.requestLocationUpdates(mLocationRequest,mLocationCallback,Looper.myLooper());
+            }
+            else {
+                showAlertDialogNOGPS();
+            }
+        }
+    }
+
+    private void checkLocationPermission(){
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_FINE_LOCATION)){
+                new AlertDialog.Builder(this)
+                        .setTitle("Proporciona los permisos para continuar")
+                        .setMessage("Esta apicación requiere de los permisos de ubicación para poder utilizarse")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ActivityCompat.requestPermissions(MapDriverBookingRouteActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_REQUEST_CODE);
+                            }
+                        })
+                        .create()
+                        .show();
+            }
+            else {
+                ActivityCompat.requestPermissions(MapDriverBookingRouteActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_REQUEST_CODE);
+            }
+        }
+    }
+
+    private void updateLocation(){
+        if(mAuthProvider.existSession() && mCurrentLatLng !=null){
+            mGeofireProvider.saveLocation(mAuthProvider.getId(),mCurrentLatLng);
+            if(!mIsCloseToClient){
+                if (mOrigenLatLng != null && mCurrentLatLng != null){
+                    double distance = getDisctanceBetween(mOrigenLatLng,mCurrentLatLng); // METROS
+                    if(distance <= 200){
+                        //btnStartBooking.setEnabled(true);
+                        mIsCloseToClient = true;
+                        Toast.makeText(this,"Estas cerca a la posición de recogida ",Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        }
     }
 
     // Para mandar notificaciones al usuario del estado de su pedido
@@ -1190,127 +1546,5 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
 
             }
         });
-    }
-
-    private void checkLocationPermission(){
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED){
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_FINE_LOCATION)){
-                new AlertDialog.Builder(this)
-                        .setTitle("Proporciona los permisos para continuar")
-                        .setMessage("Esta apicación requiere de los permisos de ubicación para poder utilizarse")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ActivityCompat.requestPermissions(MapDriverBookingRouteActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_REQUEST_CODE);
-                            }
-                        })
-                        .create()
-                        .show();
-            }
-            else {
-                ActivityCompat.requestPermissions(MapDriverBookingRouteActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},LOCATION_REQUEST_CODE);
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == SETTINGS_REQUEST_CODE && gpsActived()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            mFusedLocation.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
-        }
-        else {
-            showAlertDialogNOGPS();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    if (gpsActived()){
-                        mFusedLocation.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
-                        // Si quiero utilizar el punto azul y tendriamos que poner en todos los mFused menos en disconect
-                        // PAra obtener el punto exacto
-                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                            return;
-                        }
-                        mMap.setMyLocationEnabled(false);
-                    }
-                    else {
-                        showAlertDialogNOGPS();
-                    }
-                } else {
-                    checkLocationPermission();
-                }
-            } else {
-                checkLocationPermission();
-            }
-        }
-    }
-
-    private void startLocation(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED){
-                if(gpsActived()){
-                    mFusedLocation.requestLocationUpdates(mLocationRequest,mLocationCallback,Looper.myLooper());
-                }
-                else {
-                    showAlertDialogNOGPS();
-                }
-            }
-            else {
-                checkLocationPermission();
-            }
-        }
-        else {
-            if (gpsActived()){
-                mFusedLocation.requestLocationUpdates(mLocationRequest,mLocationCallback,Looper.myLooper());
-            }
-            else {
-                showAlertDialogNOGPS();
-            }
-        }
-    }
-
-    private void showAlertDialogNOGPS(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Por favor activa tu ubicación para continuar")
-                .setPositiveButton("Configuraciones", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),SETTINGS_REQUEST_CODE);
-                    }
-                }).create().show();
-    }
-
-
-    // Para saber si tiene activado la ubicacion
-    private boolean gpsActived(){
-        boolean isActive = false;
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-            isActive = true;
-        }
-        return isActive;
-    }
-
-    private  void disconnect(){
-        if(mFusedLocation!=null){
-            mFusedLocation.removeLocationUpdates(mLocationCallback);
-            if (mAuthProvider.existSession()){
-                mGeofireProvider.removeLocation(mAuthProvider.getId());
-            }
-        }
-        else{
-            Toast.makeText(this,"No te puedes desconectar",Toast.LENGTH_SHORT).show();
-        }
     }
 }

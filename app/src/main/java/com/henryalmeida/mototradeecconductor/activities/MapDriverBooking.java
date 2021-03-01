@@ -273,7 +273,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         getClient();
 
         //Log.d("DISTANCES",mExtraDistance);
-        Toast.makeText(this, mExtraDistance, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, mExtraDistance, Toast.LENGTH_SHORT).show();
 
         getInfo();
         btnCancel.setOnClickListener(new View.OnClickListener() {
@@ -391,83 +391,6 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
-    private void CancelDelivery(){
-
-        mClientBookingProvider.updateStatus(mExtraClientId,"cancel").addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-
-                mIsFinishBooking = true;
-
-                mEditor.clear().commit();
-                sendNotification("Viaje cancelado");
-
-
-                if(mFusedLocation != null){
-                    // Ubicacion
-                    mFusedLocation.removeLocationUpdates(mLocationCallback);
-                }
-                // Nodo eliminado
-                mGeofireProvider.removeLocation(mAuthProvider.getId());
-
-                if(mHandler != null) {
-                    mHandler.removeCallbacks(runnable); // deja de escuchar para que pare el temporizador
-                }
-
-                Intent intent = new Intent(MapDriverBooking.this,MapDriver.class);
-                startActivity(intent);
-                finish();
-
-            }
-        });
-
-    }
-
-
-    private void startBooking() {
-
-        mPrefPrice = getApplicationContext().getSharedPreferences("pricePreference",MODE_PRIVATE);
-        mEditorPrice = mPref.edit();
-        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
-        String distancePrice = mPrefPrice.getString("km","");
-
-        Log.d("DISTANCES",distancePrice);
-
-        String[] distanceAndKm = distancePrice.split(" "); // Para partir el string con un espacio y se guarde cada uno en una posicion
-        double distanceValue = Double.parseDouble(distanceAndKm[0]);
-
-        double pricekm = distanceValue * mInfo.getKm();
-        String price = String.valueOf(String.format("%.2f",pricekm));
-
-        mEditor.putString("status","start");
-        mEditor.putString("idClient",mExtraClientId);
-        mEditor.putFloat("priceKm", (float) pricekm);
-        mEditor.putString("price",price);
-        mEditor.apply();
-
-        // Cambiamos el estado del pedido a iniciar
-        mClientBookingProvider.updateStatus(mExtraClientId,"start");
-        btnStartBooking.setVisibility(View.GONE);
-        btnFinishBooking.setVisibility(View.VISIBLE);
-        tvPrice.setText(price);
-        // Borramos la ruta y el marcador
-        mMap.clear();
-        // Añadir un marcador
-        mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
-        drawRoute(mDestinationLatLng);
-        // Viaje iniciado notificacion para el cliente
-        sendNotification("Viaje iniciado");
-        mRideStar = true;
-        mHandler.postDelayed(runnable,1000);// Llamar al cronometro
-
-
-    }
-
-    @Override
-    public void onBackPressed() {
-        moveTaskToBack(true);
-    }
-
     private void calculateRide(){
 
         mPrefPrice = getApplicationContext().getSharedPreferences("pricePreference",MODE_PRIVATE);
@@ -516,6 +439,92 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
             }
         });
 
+    }
+
+    private void CancelDelivery(){
+
+        mClientBookingProvider.updateStatus(mExtraClientId,"cancel").addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+
+                mIsFinishBooking = true;
+
+                mEditor.clear().commit();
+                sendNotification("Viaje cancelado");
+
+
+                if(mFusedLocation != null){
+                    // Ubicacion
+                    mFusedLocation.removeLocationUpdates(mLocationCallback);
+                }
+                // Nodo eliminado
+                mGeofireProvider.removeLocation(mAuthProvider.getId());
+
+                if(mHandler != null) {
+                    mHandler.removeCallbacks(runnable); // deja de escuchar para que pare el temporizador
+                }
+
+                Intent intent = new Intent(MapDriverBooking.this,MapDriver.class);
+                startActivity(intent);
+                finish();
+
+            }
+        });
+
+    }
+
+
+    private void startBooking() {
+
+
+        mPrefPrice = getApplicationContext().getSharedPreferences("pricePreference",MODE_PRIVATE);
+        mEditorPrice = mPref.edit();
+        // ES OBTENER EL ULTIMO ESTADO ALMACENDO EN EL SHARED PREFERENCE
+        String distancePrice = mPrefPrice.getString("km","");
+
+        Log.d("DISTANCES",distancePrice);
+
+        String[] distanceAndKm = distancePrice.split(" "); // Para partir el string con un espacio y se guarde cada uno en una posicion
+        double distanceValue = Double.parseDouble(distanceAndKm[0]);
+        double pricekm = 0;
+        String price = "";
+
+        DecimalFormat df = new DecimalFormat("#.00");
+        if(distanceValue > 8){
+            pricekm = distanceValue * mInfo.getKm();
+            price = String.valueOf(String.format("%.2f",pricekm));
+        }else {
+            price = "1.50";
+        }
+
+
+        mEditor.putString("status","start");
+        mEditor.putString("idClient",mExtraClientId);
+        mEditor.putFloat("priceKm", (float) pricekm);
+        mEditor.putString("price",price);
+        mEditor.apply();
+
+        // Cambiamos el estado del pedido a iniciar
+        mClientBookingProvider.updateStatus(mExtraClientId,"start");
+        btnStartBooking.setVisibility(View.GONE);
+        btnFinishBooking.setVisibility(View.VISIBLE);
+        tvPrice.setText(price);
+        // Borramos la ruta y el marcador
+        mMap.clear();
+        // Añadir un marcador
+        mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
+        drawRoute(mDestinationLatLng);
+        // Viaje iniciado notificacion para el cliente
+        sendNotification("Viaje iniciado");
+        mRideStar = true;
+        mHandler.postDelayed(runnable,1000);// Llamar al cronometro
+
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
     }
 
     // Metodo en el cual se va a medir la distancia para verificar que el conductor inicie el pedido

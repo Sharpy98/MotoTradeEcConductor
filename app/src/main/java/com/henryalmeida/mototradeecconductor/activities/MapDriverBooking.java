@@ -486,42 +486,54 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
 
         Log.d("DISTANCES",distancePrice);
 
-        String[] distanceAndKm = distancePrice.split(" "); // Para partir el string con un espacio y se guarde cada uno en una posicion
-        double distanceValue = Double.parseDouble(distanceAndKm[0]);
-        double pricekm = 0;
-        String price = "";
+        mClientBookingProvider.getClientBooking(mExtraClientId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String mPrice = snapshot.child("price").getValue().toString();
+                //String[] distanceAndKm = distancePrice.split(" "); // Para partir el string con un espacio y se guarde cada uno en una posicion
+                //double distanceValue = Double.parseDouble(distanceAndKm[0]);
 
-        DecimalFormat df = new DecimalFormat("#.00");
-        if(distanceValue > 8){
-            pricekm = distanceValue * mInfo.getKm();
-            price = String.valueOf(String.format("%.2f",pricekm));
-        }else {
-            price = "1.50";
-        }
+                double distanceValue = Double.parseDouble(mPrice);
+                double pricekm = 0;
+                String price = String.valueOf(distanceValue);
+
+                /*DecimalFormat df = new DecimalFormat("#.00");
+                if(distanceValue > 8){
+                    pricekm = distanceValue * mInfo.getKm();
+                    price = String.valueOf(String.format("%.2f",pricekm));
+                }else {
+                    price = "1.50";
+                }*/
 
 
-        mEditor.putString("status","start");
-        mEditor.putString("idClient",mExtraClientId);
-        mEditor.putFloat("priceKm", (float) pricekm);
-        mEditor.putString("price",price);
-        mEditor.apply();
+                mEditor.putString("status","start");
+                mEditor.putString("idClient",mExtraClientId);
+                mEditor.putFloat("priceKm", (float) pricekm);
+                mEditor.putString("price",price);
+                mEditor.apply();
 
-        // Cambiamos el estado del pedido a iniciar
-        mClientBookingProvider.updateStatus(mExtraClientId,"start");
-        btnStartBooking.setVisibility(View.GONE);
-        btnFinishBooking.setVisibility(View.VISIBLE);
-        btnCancel.setVisibility(View.GONE);
-        tvPrice.setText(price);
-        // Borramos la ruta y el marcador
-        mMap.clear();
-        // Añadir un marcador
-        mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
-        drawRoute(mDestinationLatLng);
-        // Viaje iniciado notificacion para el cliente
-        sendNotification("Viaje iniciado");
-        mRideStar = true;
-        mHandler.postDelayed(runnable,1000);// Llamar al cronometro
+                // Cambiamos el estado del pedido a iniciar
+                mClientBookingProvider.updateStatus(mExtraClientId,"start");
+                btnStartBooking.setVisibility(View.GONE);
+                btnFinishBooking.setVisibility(View.VISIBLE);
+                btnCancel.setVisibility(View.GONE);
+                tvPrice.setText(price);
+                // Borramos la ruta y el marcador
+                mMap.clear();
+                // Añadir un marcador
+                mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
+                drawRoute(mDestinationLatLng);
+                // Viaje iniciado notificacion para el cliente
+                sendNotification("Viaje iniciado");
+                mRideStar = true;
+                mHandler.postDelayed(runnable,1000);// Llamar al cronometro
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
     }
 

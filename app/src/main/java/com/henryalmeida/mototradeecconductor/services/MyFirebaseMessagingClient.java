@@ -54,10 +54,9 @@ public class MyFirebaseMessagingClient extends FirebaseMessagingService {
                     String destination  = data.get("destination");
                     String min = data.get("min");
                     String distance = data.get("distance");
-                    String collectMoney = data.get("collectMoney");
                     //String searchById = data.get("searchById");
                     showNotificationApiOreoActions(title,body,idClient);
-                    showNotificationActivity(idClient,origin,destination,min,distance,collectMoney);
+                    showNotificationActivity(idClient,origin,destination,min,distance);
                 }
                 else if (title.contains("VIAJE CANCELADO")){
                     NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
@@ -87,9 +86,8 @@ public class MyFirebaseMessagingClient extends FirebaseMessagingService {
                     String destination  = data.get("destination");
                     String min = data.get("min");
                     String distance = data.get("distance");
-                    String collectMoney = data.get("collectMoney");
                     showNotificationActions(title,body,idClient);
-                    showNotificationActivity(idClient,origin,destination,min,distance,collectMoney);
+                    showNotificationActivity(idClient,origin,destination,min,distance);
                 }
                 else if(title.contains("SOLICITUD DE RUTA")){
                     String idClient = data.get("idClient");
@@ -157,7 +155,7 @@ public class MyFirebaseMessagingClient extends FirebaseMessagingService {
         }
     }
 
-    private void showNotificationActivity(String idClient, String origin, String destination, String min, String distance,String collectMoney) {
+    private void showNotificationActivity(String idClient, String origin, String destination, String min, String distance) {
         // Para que encienda el celular asi este
         PowerManager pm = (PowerManager) getBaseContext().getSystemService(Context.POWER_SERVICE);
         // Para verficar si la pantalla esta encendida
@@ -178,7 +176,6 @@ public class MyFirebaseMessagingClient extends FirebaseMessagingService {
         intent.putExtra("destination", destination);
         intent.putExtra("min", min);
         intent.putExtra("distance", distance);
-        intent.putExtra("collectMoney", collectMoney);
 
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

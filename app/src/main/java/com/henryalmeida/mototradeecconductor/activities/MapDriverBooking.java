@@ -558,11 +558,13 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                     double destinationLng = Double.parseDouble(snapshot.child("destinationLng").getValue().toString());
                     double originLat = Double.parseDouble(snapshot.child("originLat").getValue().toString());
                     double originLng = Double.parseDouble(snapshot.child("originLng").getValue().toString());
+                    String collectMoney = snapshot.child("collectMoney").getValue().toString();
 
                     mOrigenLatLng = new LatLng(originLat,originLng);
                     mDestinationLatLng = new LatLng(destinationLat,destinationLng);
                     tvOrigin.setText("Recoger en: " + origin);
                     tvDestination.setText("Entregar en: " + destination);
+                    tvCollectMoney.setText(collectMoney);
 
                     mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
                     mEditor = mPref.edit();
@@ -683,7 +685,6 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                 if(snapshot.exists()){
                     String phoneOrigin = snapshot.child("phone").getValue().toString();
                     String name = snapshot.child("name").getValue().toString();
-                    String collectMoney = snapshot.child("collectMoney").getValue().toString();
                     String image = "";
                     if (snapshot.hasChild("image")){
                        image = snapshot.child("image").getValue().toString();
@@ -692,7 +693,6 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
 
                     tvClientBooking.setText(name);
                     tvPhoneOrigin.setText(phoneOrigin);
-                    tvCollectMoney.setText(collectMoney);
                 }
             }
 

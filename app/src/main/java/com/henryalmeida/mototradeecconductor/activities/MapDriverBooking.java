@@ -632,7 +632,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         mClientBookingProvider.updateStatus(mExtraClientId,"start");
         btnStartBooking.setVisibility(View.GONE);
         btnFinishBooking.setVisibility(View.VISIBLE);
-        tvPrice.setText(price);
+        tvPrice.setText("Cobrar: $ "+price);
         // Borramos la ruta y el marcador
         mMap.clear();
         // Añadir un marcador

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.henryalmeida.mototradeecconductor.activities.MapDriverBooking;
+import com.henryalmeida.mototradeecconductor.activities.Route.MapDriverBookingRouteActivity;
 import com.henryalmeida.mototradeecconductor.providiers.AuthProvider;
 import com.henryalmeida.mototradeecconductor.providiers.ClientBookingProvider;
 import com.henryalmeida.mototradeecconductor.providiers.GeofireProvider;
@@ -33,7 +34,7 @@ public class AcceptReceiverRoute extends BroadcastReceiver {
         NotificationManager manager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(2);
 
-        Intent intent1 = new Intent(context, MapDriverBooking.class);
+        Intent intent1 = new Intent(context, MapDriverBookingRouteActivity.class);
         // Para que el conductor ya pueda volver a la pantalla anterior
         intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent1.setAction(Intent.ACTION_RUN);

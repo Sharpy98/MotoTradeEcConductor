@@ -204,7 +204,7 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                             new LatLng(location.getLatitude(),location.getLongitude())
                             )
                                     .title("Tu posición")
-                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_motorcycle))
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_cascov1))
                     );
                     // Obtener la localizacion en tiempo real
                     mMap.moveCamera(CameraUpdateFactory.newCameraPosition(
@@ -1251,6 +1251,7 @@ public class MapDriverBookingRouteActivity extends AppCompatActivity implements 
                             mEditor.putString("idClient",mExtraClientId);
                             mEditor.apply();// guarda informacion en el celular
                             // Añadir un marcador
+                            Log.d("OrigenCliente", String.valueOf(mOrigenLatLng));
                             mMap.addMarker(new MarkerOptions().position(mOrigenLatLng).title("Recoger aqui").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_red)));
                             drawRoute(mOrigenLatLng);
                         }

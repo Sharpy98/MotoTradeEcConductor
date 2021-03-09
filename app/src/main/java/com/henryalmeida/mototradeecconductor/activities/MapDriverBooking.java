@@ -115,6 +115,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
     private TextView tvDestination;
     private TextView tvTime;
     private TextView tvPrice;
+    private TextView tvCollectMoney;
     private Button btnCancel;
 
     private Button btnStartBooking;
@@ -260,6 +261,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         mImageViewBooking = findViewById(R.id.ivClientBooking);
         tvTime = findViewById(R.id.tv_Time);
         tvPrice = findViewById(R.id.tv_Price);
+        tvCollectMoney = findViewById(R.id.tvCollectMoney);
 
         btnCancel = findViewById(R.id.btnCancelBooking);
 
@@ -508,6 +510,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         mClientBookingProvider.updateStatus(mExtraClientId,"start");
         btnStartBooking.setVisibility(View.GONE);
         btnFinishBooking.setVisibility(View.VISIBLE);
+        btnCancel.setVisibility(View.GONE);
         tvPrice.setText(price);
         // Borramos la ruta y el marcador
         mMap.clear();
@@ -680,6 +683,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                 if(snapshot.exists()){
                     String phoneOrigin = snapshot.child("phone").getValue().toString();
                     String name = snapshot.child("name").getValue().toString();
+                    String collectMoney = snapshot.child("collectMoney").getValue().toString();
                     String image = "";
                     if (snapshot.hasChild("image")){
                        image = snapshot.child("image").getValue().toString();
@@ -688,6 +692,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
 
                     tvClientBooking.setText(name);
                     tvPhoneOrigin.setText(phoneOrigin);
+                    tvCollectMoney.setText(collectMoney);
                 }
             }
 

@@ -26,6 +26,7 @@ import com.henryalmeida.mototradeecconductor.providiers.HistoryBookingProvider;
 import com.henryalmeida.mototradeecconductor.providiers.Route.BookingProviderRoute;
 import com.henryalmeida.mototradeecconductor.providiers.Route.HistoryBookingRouteProvider;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 
 public class CalificationClientActivity extends AppCompatActivity {
@@ -49,7 +50,7 @@ public class CalificationClientActivity extends AppCompatActivity {
 
     private float mCalification = 0;
     private TextView tvPrice;
-    private double mExtraPrice = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +72,7 @@ public class CalificationClientActivity extends AppCompatActivity {
 
         mExtraClientId = getIntent().getStringExtra("idClient");
         numDelivery = getIntent().getStringExtra("numDelivery");
-        mExtraPrice = getIntent().getDoubleExtra("price",0);
 
-        tvPrice.setText("$ " + String.format("%.0f",mExtraPrice));
 
 
         mRatingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
@@ -601,9 +600,12 @@ public class CalificationClientActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(snapshot.exists()){
                     // Para obtener toda la informacion de una sola
+                    DecimalFormat df = new DecimalFormat("#.00");
                     ClienttBooking clienttBooking = snapshot.getValue(ClienttBooking.class);
                     tvOrigin.setText(clienttBooking.getOrigin());
                     tvDestination.setText(clienttBooking.getDestination());
+                    double price = Double.parseDouble(df.format(clienttBooking.getPrice()));
+                    tvPrice.setText("$ " + price);
 
                     mHistoryBooking = new HistoryBooking(
                             clienttBooking.getIdHistoryBooking(),

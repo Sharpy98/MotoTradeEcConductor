@@ -1,6 +1,7 @@
 package com.henryalmeida.mototradeecconductor.activities;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
@@ -67,11 +68,7 @@ public class captureOrderActivity extends AppCompatActivity {
         imgBooking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Esto es para poder utilizar la camara
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                }
+                openCamera();
             }
         });
 
@@ -92,6 +89,26 @@ public class captureOrderActivity extends AppCompatActivity {
             }
         });
     }
+    private void openCamera(){
+        // Esto es para poder utilizar la camara
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            try {
+                mImageFile = FileUtil.from(this,data.getData());
+                imgBooking.setImageBitmap(BitmapFactory.decodeFile(mImageFile.getAbsolutePath()));
+            }catch (Exception e){
+                Log.d("ERROR","Mensaje: " + e.getMessage());
+            }
+        }
+
+    }
 
     private void saveImage(){
         mSaveImageProvider.saveImage(captureOrderActivity.this,mImageFile,mAuthProvider.getId()).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
@@ -107,17 +124,5 @@ public class captureOrderActivity extends AppCompatActivity {
             }
         });
     }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            try {
-                mImageFile = FileUtil.from(this,data.getData());
-                imgBooking.setImageBitmap(BitmapFactory.decodeFile(mImageFile.getAbsolutePath()));
-            }catch (Exception e){
-                Log.d("ERROR","Mensaje: " + e.getMessage());
-            }
-        }
 
-    }
 }

@@ -426,13 +426,12 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
             }
         });
 
-        //Log.d("VALORES","Precio Total: " + pricekm);
-
         // Para asegurarnos que primero se gurde dicha informacion en la base de datos
         mClientBookingProvider.updateStatus(mExtraClientId,"finish").addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                Intent intent =  new Intent(MapDriverBooking.this, CalificationClientActivity.class);
+               // Intent intent =  new Intent(MapDriverBooking.this, CalificationClientActivity.class);
+                Intent intent =  new Intent(MapDriverBooking.this, captureOrderActivity.class);
                 intent.putExtra("idClient",mExtraClientId);
                 intent.putExtra("numDelivery","1");
                 intent.putExtra("price", pricekm[0]);
@@ -496,15 +495,6 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                 double distanceValue = Double.parseDouble(mPrice);
                 double pricekm = 0;
                 String price = String.valueOf(distanceValue);
-
-                /*DecimalFormat df = new DecimalFormat("#.00");
-                if(distanceValue > 8){
-                    pricekm = distanceValue * mInfo.getKm();
-                    price = String.valueOf(String.format("%.2f",pricekm));
-                }else {
-                    price = "1.50";
-                }*/
-
 
                 mEditor.putString("status","start");
                 mEditor.putString("idClient",mExtraClientId);

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".activities.captureOrderActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+    <com.github.florent37.shapeofview.shapes.DiagonalView
+        android:layout_width="match_parent"
+        android:layout_height="210dp"
+        android:elevation="4dp"
+        app:shape_diagonal_angle="10"
+        app:shape_diagonal_direction="left"
+        app:shape_diagonal_position="bottom">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"/>
+
+    </com.github.florent37.shapeofview.shapes.DiagonalView>
+
+    </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center|top">
+
+            <ImageView
+                android:layout_width="272dp"
+                android:layout_height="73dp"
+                android:layout_marginTop="100dp"
+                android:src="@drawable/marca"
+                android:layout_gravity="center|top"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Toma una foto del producto entregado"
+                android:textStyle="bold"
+                android:textSize="20dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginBottom="20dp"
+                android:textAlignment="center"/>
+
+            <ImageView
+                android:id="@+id/imageBooking"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/ic_camera"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tomar una foto nos ayuda a seguir\n creciendo como empresa\n para brindar la confianza\n necesaria a nuestros clientes"
+                android:textSize="18dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp"
+                android:textAlignment="center"/>
+        </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_sendImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Esperando..."
+        android:background="@drawable/btn_fondo_color"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_gravity="bottom"
+        android:layout_margin="30dp"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

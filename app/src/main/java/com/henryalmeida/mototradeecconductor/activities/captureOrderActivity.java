@@ -22,16 +22,23 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.henryalmeida.mototradeecconductor.CalificationClientActivity;
 import com.henryalmeida.mototradeecconductor.R;
+import com.henryalmeida.mototradeecconductor.models.Drivers;
 import com.henryalmeida.mototradeecconductor.providiers.AuthProvider;
+import com.henryalmeida.mototradeecconductor.providiers.ClientBookingProvider;
+import com.henryalmeida.mototradeecconductor.providiers.ClientProvider;
 import com.henryalmeida.mototradeecconductor.providiers.SaveImagesBookingProvider;
 import com.henryalmeida.mototradeecconductor.utils.CompressorBitmapImage;
 import com.henryalmeida.mototradeecconductor.utils.FileUtil;
+import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -47,8 +54,10 @@ public class captureOrderActivity extends AppCompatActivity {
 
     private ProgressDialog mProgress;
 
+    private ClientBookingProvider mClientProvider;
     private SaveImagesBookingProvider mSaveImageProvider;
     private AuthProvider mAuthProvider;
+    private ValueEventListener mListenerStatus;
 
     private File mImageFile;
     private Bitmap imageBitmap;
@@ -62,12 +71,13 @@ public class captureOrderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capture_order);
 
+        mSaveImageProvider = new SaveImagesBookingProvider("BookingImages");
+        mClientProvider = new ClientBookingProvider();
         imgBooking = findViewById(R.id.imageBooking);
         btnSendImage = findViewById(R.id.btn_sendImage);
         mExtraClientId = getIntent().getStringExtra("idClient");
 
         mAuthProvider = new AuthProvider();
-        mSaveImageProvider = new SaveImagesBookingProvider("booking_images");
 
         mProgress = new ProgressDialog(this);
 
@@ -122,32 +132,70 @@ public class captureOrderActivity extends AppCompatActivity {
     }
 
     private void saveImage(){
-        FirebaseStorage storage = FirebaseStorage.getInstance();
 
-        String timeStamp = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss").format(new Date());
-
-        // Creamos una referencia a la carpeta y el nombre de la imagen donde se guardara
-        StorageReference mountainImagesRef = storage.getReference().child("Booking/"+timeStamp+".jpg");
-        //Pasamos la imagen a un array de byte
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Bitmap bitmap = imageBitmap;
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] datas = baos.toByteArray();
-
-        // Empezamos con la subida a Firebase
-        UploadTask uploadTask = mountainImagesRef.putBytes(datas);
-        uploadTask.addOnFailureListener(new OnFailureListener() {
+      /*  Log.d("BOOKING",mExtraClientId);
+        mClientProvider.getClient(mExtraClientId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onFailure(@NonNull Exception exception) {
-                Toast.makeText(getBaseContext(),"Hubo un error",Toast.LENGTH_LONG);
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()){
+                    String pack = snapshot.child("pack").getValue().toString();
+
+                    Log.d("BOOKING",pack);
+                    mSaveImageProvider = new SaveImagesBookingProvider();
+                    mSaveImageProvider.saveImageBooking(imageBitmap,mAuthProvider.getId(),pack).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                            if (task.isSuccessful()){
+                                Toast.makeText(captureOrderActivity.this, "Se guardo con éxito", Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                Toast.makeText(captureOrderActivity.this, "Hubo un error en la imagen", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                }
             }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+
             @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(getBaseContext(),"Subida con exito",Toast.LENGTH_LONG);
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });*/
+
+        mListenerStatus = mClientProvider.getPack(mExtraClientId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()){
+                    String pack = snapshot.getValue().toString();
+
+                    Log.d("BOOKING",pack);
+                    mSaveImageProvider.saveImageBooking(imageBitmap,mAuthProvider.getId()+"_"+pack).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                            if (task.isSuccessful()){
+                                Toast.makeText(captureOrderActivity.this, "Se guardo con éxito", Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                Toast.makeText(captureOrderActivity.this, "Hubo un error en la imagen", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
             }
         });
+
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mListenerStatus != null){
+            mClientProvider.getStatus(mAuthProvider.getId()).removeEventListener(mListenerStatus);
+        }
+    }
 }

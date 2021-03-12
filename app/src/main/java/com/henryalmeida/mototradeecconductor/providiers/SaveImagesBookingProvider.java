@@ -1,30 +1,43 @@
 package com.henryalmeida.mototradeecconductor.providiers;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.henryalmeida.mototradeecconductor.utils.CompressorBitmapImage;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import androidx.annotation.NonNull;
 
 public class SaveImagesBookingProvider {
     private StorageReference mStorage;
 
     public SaveImagesBookingProvider(String ref) {
-// Creamos una referencia a la carpeta y el nombre de la imagen donde se guardara
-        mStorage = FirebaseStorage.getInstance().getReference().child(ref);
+        //String timeStamp = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss").format(new Date()); // Guardar la fecha y hora actual
+        //mStorage =  FirebaseStorage.getInstance().getReference().child("Booking/"+timeStamp+".jpg");
+        mStorage =  FirebaseStorage.getInstance().getReference().child(ref);
     }
-    public UploadTask saveImage(Context context, File image, String idUser){
-        String timeStamp = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss").format(new Date());
-        byte[] imageByte = CompressorBitmapImage.getImage(context,image.getPath(),500,500);
-        // Vamos a crear una carpeta para guardar con ese nombre en firebase
-        final StorageReference storage = mStorage.child(idUser+"/"+timeStamp+".jpg");
+    public UploadTask saveImageBooking(Bitmap imageBitmap,String idDriver){
+        //Pasamos la imagen a un array de byte /"+idDriver+name+".jpg"
+
+        final StorageReference storage = mStorage.child(idDriver+".jpg");
         mStorage = storage;
-        UploadTask uploadTask = storage.putBytes(imageByte);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Bitmap bitmap = imageBitmap;
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] datas = baos.toByteArray();
+
+        // Empezamos con la subida a Firebase
+        UploadTask uploadTask = mStorage.putBytes(datas);
         return uploadTask;
     }
 

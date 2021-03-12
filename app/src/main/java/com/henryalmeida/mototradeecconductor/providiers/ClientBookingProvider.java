@@ -56,6 +56,10 @@ public class ClientBookingProvider {
         return mDatabase.child(idClientBooking).child("status");
     }
 
+    public DatabaseReference getPack(String idClientBooking) {
+        return mDatabase.child(idClientBooking).child("pack");
+    }
+
     public DatabaseReference getClientBooking(String idClientBooking) {
         return mDatabase.child(idClientBooking);
     }

@@ -26,6 +26,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.henryalmeida.mototradeecconductor.CalificationClientActivity;
 import com.henryalmeida.mototradeecconductor.R;
 import com.henryalmeida.mototradeecconductor.providiers.AuthProvider;
 import com.henryalmeida.mototradeecconductor.providiers.SaveImagesBookingProvider;
@@ -34,6 +35,7 @@ import com.henryalmeida.mototradeecconductor.utils.FileUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,6 +51,9 @@ public class captureOrderActivity extends AppCompatActivity {
     private AuthProvider mAuthProvider;
 
     private File mImageFile;
+    private Bitmap imageBitmap;
+
+    private String mExtraClientId;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
@@ -59,6 +64,7 @@ public class captureOrderActivity extends AppCompatActivity {
 
         imgBooking = findViewById(R.id.imageBooking);
         btnSendImage = findViewById(R.id.btn_sendImage);
+        mExtraClientId = getIntent().getStringExtra("idClient");
 
         mAuthProvider = new AuthProvider();
         mSaveImageProvider = new SaveImagesBookingProvider("booking_images");
@@ -75,16 +81,22 @@ public class captureOrderActivity extends AppCompatActivity {
         btnSendImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mImageFile != null){
+                if (imageBitmap != null){
                     mProgress.setMessage("Espere un momento...");
                     mProgress.setCanceledOnTouchOutside(false);
                     mProgress.show();
 
-                    // Guardar en Firebase
+
                     saveImage();
+
+                    Intent intent =  new Intent(captureOrderActivity.this, CalificationClientActivity.class);
+                    intent.putExtra("idClient",mExtraClientId);
+                    intent.putExtra("numDelivery","1");
+                    startActivity(intent);
+                    finish();
                 }
                 else {
-                    Toast.makeText(captureOrderActivity.this, "Ingresa la imagen y el número de celular", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(captureOrderActivity.this, "Toma la foto de la entrega", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -96,31 +108,44 @@ public class captureOrderActivity extends AppCompatActivity {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
     }
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode,  Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            try {
-                mImageFile = FileUtil.from(this,data.getData());
-                imgBooking.setImageBitmap(BitmapFactory.decodeFile(mImageFile.getAbsolutePath()));
-            }catch (Exception e){
-                Log.d("ERROR","Mensaje: " + e.getMessage());
-            }
+
+            Bundle extras = data.getExtras();
+            imageBitmap = (Bitmap) extras.get("data");
+            imgBooking.setImageBitmap(imageBitmap);
         }
 
     }
 
     private void saveImage(){
-        mSaveImageProvider.saveImage(captureOrderActivity.this,mImageFile,mAuthProvider.getId()).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+
+        String timeStamp = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss").format(new Date());
+
+        // Creamos una referencia a la carpeta y el nombre de la imagen donde se guardara
+        StorageReference mountainImagesRef = storage.getReference().child("Booking/"+timeStamp+".jpg");
+        //Pasamos la imagen a un array de byte
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Bitmap bitmap = imageBitmap;
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] datas = baos.toByteArray();
+
+        // Empezamos con la subida a Firebase
+        UploadTask uploadTask = mountainImagesRef.putBytes(datas);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                if (task.isSuccessful()){
-                    mProgress.dismiss(); // Ocultar el Proegess cuando ya se suba la imagen
-                    Toast.makeText(captureOrderActivity.this, "La foto se guardo correctamente", Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Toast.makeText(captureOrderActivity.this, "Hubo un error al subir la imagen", Toast.LENGTH_SHORT).show();
-                }
+            public void onFailure(@NonNull Exception exception) {
+                Toast.makeText(getBaseContext(),"Hubo un error",Toast.LENGTH_LONG);
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Toast.makeText(getBaseContext(),"Subida con exito",Toast.LENGTH_LONG);
+
             }
         });
     }

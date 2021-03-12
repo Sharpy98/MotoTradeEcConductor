@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -111,7 +112,7 @@ public class UpdateProfileDriverActivity extends AppCompatActivity {
     }
 
     private void openGallery() {
-        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent galleryIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         galleryIntent.setType("image/");
         startActivityForResult(galleryIntent,GALLERY_REQUEST);
     }

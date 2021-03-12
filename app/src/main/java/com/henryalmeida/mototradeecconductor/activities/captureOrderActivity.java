@@ -127,41 +127,13 @@ public class captureOrderActivity extends AppCompatActivity {
             Bundle extras = data.getExtras();
             imageBitmap = (Bitmap) extras.get("data");
             imgBooking.setImageBitmap(imageBitmap);
+
+            btnSendImage.setText("SEGUIR");
         }
 
     }
 
     private void saveImage(){
-
-      /*  Log.d("BOOKING",mExtraClientId);
-        mClientProvider.getClient(mExtraClientId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(snapshot.exists()){
-                    String pack = snapshot.child("pack").getValue().toString();
-
-                    Log.d("BOOKING",pack);
-                    mSaveImageProvider = new SaveImagesBookingProvider();
-                    mSaveImageProvider.saveImageBooking(imageBitmap,mAuthProvider.getId(),pack).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                            if (task.isSuccessful()){
-                                Toast.makeText(captureOrderActivity.this, "Se guardo con éxito", Toast.LENGTH_SHORT).show();
-                            }
-                            else{
-                                Toast.makeText(captureOrderActivity.this, "Hubo un error en la imagen", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });*/
-
         mListenerStatus = mClientProvider.getPack(mExtraClientId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -169,7 +141,7 @@ public class captureOrderActivity extends AppCompatActivity {
                     String pack = snapshot.getValue().toString();
 
                     Log.d("BOOKING",pack);
-                    mSaveImageProvider.saveImageBooking(imageBitmap,mAuthProvider.getId()+"_"+pack).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    mSaveImageProvider.saveImageBooking(imageBitmap,mExtraClientId).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                             if (task.isSuccessful()){

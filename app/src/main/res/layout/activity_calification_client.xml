@@ -43,12 +43,12 @@
             <com.airbnb.lottie.LottieAnimationView
                 android:layout_width="170dp"
                 android:layout_height="170dp"
-                app:lottie_imageAssetsFolder="assets"
-                app:lottie_fileName="782-check-mark-success.json"
-                app:lottie_autoPlay="true"
-                app:lottie_loop="false"
                 android:layout_gravity="center"
-                android:layout_marginTop="30dp"/>
+                android:layout_marginTop="30dp"
+                app:lottie_autoPlay="true"
+                app:lottie_fileName="782-check-mark-success.json"
+                app:lottie_imageAssetsFolder="assets"
+                app:lottie_loop="false" />
 
 
         </com.github.florent37.shapeofview.shapes.ArcView>

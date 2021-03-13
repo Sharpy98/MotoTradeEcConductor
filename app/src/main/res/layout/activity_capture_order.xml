@@ -81,4 +81,15 @@
         android:layout_gravity="bottom"
         android:layout_margin="30dp"/>
 
+    <Button
+        android:id="@+id/btn_Continue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Continuar"
+        android:background="@drawable/btn_fondo_color"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_gravity="bottom"
+        android:visibility="gone"
+        android:layout_margin="30dp"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

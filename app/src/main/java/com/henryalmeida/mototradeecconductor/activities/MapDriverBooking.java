@@ -68,6 +68,7 @@ import com.henryalmeida.mototradeecconductor.providiers.GoogleApiProvider;
 import com.henryalmeida.mototradeecconductor.providiers.InfoProvider;
 import com.henryalmeida.mototradeecconductor.providiers.NotificationProvider;
 import com.henryalmeida.mototradeecconductor.providiers.TokenProvider;
+import com.henryalmeida.mototradeecconductor.receivers.PopupAdapter;
 import com.henryalmeida.mototradeecconductor.services.ForegroundSrevice;
 import com.henryalmeida.mototradeecconductor.utils.DecodePoints;
 import com.squareup.picasso.Picasso;
@@ -140,6 +141,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
     // Para que llame una sola vez a la habilitacion del boton
     private boolean mIsCloseToClient = false;
 
+    private String name;
     // Para el tiempo y el precio
     double mDistanceInMeter = 1;
     int mMinutes = 0;
@@ -148,6 +150,9 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
     boolean mRideStar = false;
 
     boolean mIsFinishBooking = false; // Para saber si la carrera ya finalizo
+
+    private HashMap<String,String> mImagesMarkers = new HashMap<>();
+    Marker marker;
 
     Handler mHandler = new Handler();
 
@@ -353,8 +358,6 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()){
                     mInfo = snapshot.getValue(Info.class);
-
-
                 }
             }
 
@@ -427,9 +430,9 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         });
 
         // Para asegurarnos que primero se gurde dicha informacion en la base de datos
-        mClientBookingProvider.updateStatus(mExtraClientId,"finish").addOnSuccessListener(new OnSuccessListener<Void>() {
+       /* mClientBookingProvider.updateStatus(mExtraClientId,"finish").addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
-            public void onSuccess(Void aVoid) {
+            public void onSuccess(Void aVoid) {*/
                // Intent intent =  new Intent(MapDriverBooking.this, CalificationClientActivity.class);
                 Intent intent =  new Intent(MapDriverBooking.this, captureOrderActivity.class);
                 intent.putExtra("idClient",mExtraClientId);
@@ -437,8 +440,8 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                 intent.putExtra("price", pricekm[0]);
                 startActivity(intent);
                 finish();
-            }
-        });
+       /*     }
+        });*/
 
     }
 
@@ -507,16 +510,18 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                 btnStartBooking.setVisibility(View.GONE);
                 btnFinishBooking.setVisibility(View.VISIBLE);
                 btnCancel.setVisibility(View.GONE);
-                tvPrice.setText(price);
+                tvPrice.setText("Cobrar: $ " + price);
                 // Borramos la ruta y el marcador
                 mMap.clear();
                 // Añadir un marcador
-                mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
+
+                marker = mMap.addMarker(new MarkerOptions().position(mDestinationLatLng).title("Destino").icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_pin_blue)));
                 drawRoute(mDestinationLatLng);
                 // Viaje iniciado notificacion para el cliente
                 sendNotification("Viaje iniciado");
                 mRideStar = true;
                 mHandler.postDelayed(runnable,1000);// Llamar al cronometro
+                getClientInfo();
             }
 
             @Override
@@ -680,13 +685,74 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
+    private void getClientInfo(){
+        mClientBookingProvider.getClientBooking(mExtraClientId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()){
+
+                    if (snapshot.hasChild("pack")){
+                        String nameClient = snapshot.child("pack").getValue().toString();
+                        marker.setTitle(nameClient);
+                    }
+/*
+                    if (snapshot.hasChild("image")){
+                        String image = snapshot.child("image").getValue().toString();
+                        marker.setTitle(name);
+                        mImagesMarkers.put(mExtraClientId,image);
+
+                    }*/
+                    if (snapshot.hasChild("phoneDestination")){
+                        String phone = snapshot.child("phoneDestination").getValue().toString();
+                        mImagesMarkers.put("phone",phone);
+                    }
+                    if (snapshot.hasChild("collectMoney")){
+                        String collectMoney = snapshot.child("collectMoney").getValue().toString();
+                        mImagesMarkers.put("collectMoney",collectMoney);
+                    }
+                 /*   else{
+                        mImagesMarkers.put(mExtraClientId,null);
+                    }*/
+
+                    mMap.setInfoWindowAdapter(new PopupAdapter(MapDriverBooking.this,getLayoutInflater(),mImagesMarkers));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        /*mClientBookingProvider.getClientBooking(mExtraClientId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()){
+                    if (snapshot.hasChild("pack")){
+                        String name = snapshot.child("pack").getValue().toString();
+                        marker.setTitle(name);
+                    }
+                    String phoneOrigin = snapshot.child("phoneOrigin").getValue().toString();
+                    String phoneDestination = snapshot.child("phoneDestination").getValue().toString();
+                    String collectMoney = snapshot.child("collectMoney").getValue().toString();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });*/
+
+    }
+
     private void getClient() {
         mClientProvider.getClient(mExtraClientId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(snapshot.exists()){
                     String phoneOrigin = snapshot.child("phone").getValue().toString();
-                    String name = snapshot.child("name").getValue().toString();
+                     name = snapshot.child("name").getValue().toString();
                     String image = "";
                     if (snapshot.hasChild("image")){
                        image = snapshot.child("image").getValue().toString();

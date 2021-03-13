@@ -21,7 +21,9 @@
         android:layout_height="wrap_content"
         android:text="CONECTARSE"
         android:layout_gravity="bottom"
-        android:layout_margin="30dp"
+        android:layout_marginBottom="30dp"
+        android:layout_marginRight="70dp"
+        android:layout_marginLeft="70dp"
         android:textColor="@color/white"
         android:background="@drawable/btn_fondo_color"/>
 

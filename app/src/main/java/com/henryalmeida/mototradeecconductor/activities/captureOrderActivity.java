@@ -51,9 +51,11 @@ public class captureOrderActivity extends AppCompatActivity {
 
     private ImageView imgBooking;
     private Button btnSendImage;
+    private Button btnContinue;
 
     private ProgressDialog mProgress;
 
+    private ClientBookingProvider mClientBookingProvider;
     private ClientBookingProvider mClientProvider;
     private SaveImagesBookingProvider mSaveImageProvider;
     private AuthProvider mAuthProvider;
@@ -71,10 +73,14 @@ public class captureOrderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capture_order);
 
-        mSaveImageProvider = new SaveImagesBookingProvider("BookingImages");
+
+        mClientBookingProvider = new ClientBookingProvider();
+
         mClientProvider = new ClientBookingProvider();
         imgBooking = findViewById(R.id.imageBooking);
         btnSendImage = findViewById(R.id.btn_sendImage);
+        btnContinue = findViewById(R.id.btn_Continue);
+
         mExtraClientId = getIntent().getStringExtra("idClient");
 
         mAuthProvider = new AuthProvider();
@@ -88,6 +94,12 @@ public class captureOrderActivity extends AppCompatActivity {
             }
         });
 
+        btnContinue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                upLoadStatus();
+            }
+        });
         btnSendImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,14 +108,8 @@ public class captureOrderActivity extends AppCompatActivity {
                     mProgress.setCanceledOnTouchOutside(false);
                     mProgress.show();
 
-
                     saveImage();
-
-                    Intent intent =  new Intent(captureOrderActivity.this, CalificationClientActivity.class);
-                    intent.putExtra("idClient",mExtraClientId);
-                    intent.putExtra("numDelivery","1");
-                    startActivity(intent);
-                    finish();
+                    btnContinue.setVisibility(View.VISIBLE);
                 }
                 else {
                     Toast.makeText(captureOrderActivity.this, "Toma la foto de la entrega", Toast.LENGTH_SHORT).show();
@@ -111,6 +117,21 @@ public class captureOrderActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void upLoadStatus() {
+        // Para asegurarnos que primero se gurde dicha informacion en la base de datos
+        mClientBookingProvider.updateStatus(mExtraClientId,"finish").addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Intent intent =  new Intent(captureOrderActivity.this, CalificationClientActivity.class);
+                intent.putExtra("idClient",mExtraClientId);
+                intent.putExtra("numDelivery","1");
+                startActivity(intent);
+                finish();
+            }
+        });
+    }
+
     private void openCamera(){
         // Esto es para poder utilizar la camara
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -128,12 +149,14 @@ public class captureOrderActivity extends AppCompatActivity {
             imageBitmap = (Bitmap) extras.get("data");
             imgBooking.setImageBitmap(imageBitmap);
 
-            btnSendImage.setText("SEGUIR");
+            btnSendImage.setText("GUARDAR");
         }
 
     }
 
     private void saveImage(){
+        mSaveImageProvider = new SaveImagesBookingProvider("BookingImages");
+
         mListenerStatus = mClientProvider.getPack(mExtraClientId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -145,6 +168,7 @@ public class captureOrderActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                             if (task.isSuccessful()){
+                                mProgress.dismiss(); // Ocultar el Proegess cuando ya se suba la imagen
                                 Toast.makeText(captureOrderActivity.this, "Se guardo con éxito", Toast.LENGTH_SHORT).show();
                             }
                             else{
@@ -169,5 +193,10 @@ public class captureOrderActivity extends AppCompatActivity {
         if(mListenerStatus != null){
             mClientProvider.getStatus(mAuthProvider.getId()).removeEventListener(mListenerStatus);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
     }
 }

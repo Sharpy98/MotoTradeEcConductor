@@ -21,11 +21,24 @@
         android:layout_height="wrap_content"
         android:text="CONECTARSE"
         android:layout_gravity="bottom"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="90dp"
         android:layout_marginRight="70dp"
         android:layout_marginLeft="70dp"
         android:textColor="@color/white"
         android:background="@drawable/btn_fondo_color"/>
+    <Button
+        android:id="@+id/btn_StackOrder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="VER PEDIDOS"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="30dp"
+        android:layout_marginRight="70dp"
+        android:layout_marginLeft="70dp"
+        android:textColor="@color/white"
+        android:background="@drawable/btn_redondeado_gray"
+        android:backgroundTint="@color/com_facebook_likeview_text_color"
+        android:visibility="gone"/>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

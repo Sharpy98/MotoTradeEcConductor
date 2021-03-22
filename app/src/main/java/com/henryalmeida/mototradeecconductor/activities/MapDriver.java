@@ -76,6 +76,7 @@ public class MapDriver extends AppCompatActivity implements OnMapReadyCallback {
     private FusedLocationProviderClient mFusedLocation;
 
     private Button btnConect;
+    private Button btnStackOrder;
     private boolean mIsconnect = false;
 
     private LatLng mCurrentLatLng;
@@ -143,6 +144,8 @@ public class MapDriver extends AppCompatActivity implements OnMapReadyCallback {
         mExtraConnect =getIntent().getBooleanExtra("connect",false);
 
         btnConect = findViewById(R.id.btn_Conect);
+        btnStackOrder = findViewById(R.id.btn_StackOrder);
+
         btnConect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -151,6 +154,15 @@ public class MapDriver extends AppCompatActivity implements OnMapReadyCallback {
                 } else {
                     startLocation();
                 }
+            }
+        });
+
+        btnStackOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MapDriver.this,StackOrderActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
 
@@ -337,6 +349,7 @@ public class MapDriver extends AppCompatActivity implements OnMapReadyCallback {
     private  void disconnect(){
         if(mFusedLocation!=null){
             btnConect.setText("CONECTARSE");
+            btnStackOrder.setVisibility(View.GONE);
             mIsconnect = false;
             mFusedLocation.removeLocationUpdates(mLocationCallback);
             if (mAuthProvider.existSession()){
@@ -353,6 +366,7 @@ public class MapDriver extends AppCompatActivity implements OnMapReadyCallback {
             if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED){
                 if(gpsActived()){
                     btnConect.setText("DESCONECTARSE");
+                    btnStackOrder.setVisibility(View.VISIBLE);
                     mIsconnect = true;
                     mFusedLocation.requestLocationUpdates(mLocationRequest,mLocationCallback,Looper.myLooper());
                 }

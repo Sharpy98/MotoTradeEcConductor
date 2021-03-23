@@ -10,8 +10,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MotoTradeEc">
         <activity android:name=".activities.StackOrderActivity"
-            android:parentActivityName=".activities.MapDriver"/>
-        <activity android:name=".activities.captureOrderActivity" />
+            android:parentActivityName=".activities.MapDriver"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".activities.captureOrderActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"/>
         <activity android:name=".activities.Route.MapDriverBookingRouteActivity" />
         <activity android:name=".activities.Route.NotificationBookingRouteActivity" />
         <activity android:name=".activities.HistoryBookingDetailDriverActivity" />
@@ -22,8 +26,12 @@
             android:name=".activities.UpdateProfileDriverActivity"
             android:parentActivityName=".activities.MapDriver" />
         <activity android:name=".activities.NotificationBookingActivity" />
-        <activity android:name=".CalificationClientActivity" />
-        <activity android:name=".activities.MapDriverBooking" />
+        <activity android:name=".CalificationClientActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".activities.MapDriverBooking"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"/>
         <activity android:name=".activities.MapDriver" />
         <activity
             android:name=".activities.CreateAcount"
@@ -73,7 +81,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
 </manifest>

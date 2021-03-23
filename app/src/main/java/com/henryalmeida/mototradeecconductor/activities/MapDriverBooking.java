@@ -6,12 +6,14 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import de.hdodenhof.circleimageview.CircleImageView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 import android.Manifest;
 import android.app.NotificationManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +22,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -80,6 +83,7 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -123,8 +127,12 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
     private Button btnFinishBooking;
 
     private ImageView mImageViewBooking;
+    private CircleImageView mImgGoMap;
+    private CircleImageView mImgGoWaze;
+    private CircleImageView mImgCallClient;
 
     private String mExtraClientId;
+    private String phoneOrigin;
 
 
     // Para trazar la ruta del conductor hacia el cliente
@@ -148,6 +156,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
     int mSeconds = 0;
     boolean mSecondIsOver = false;
     boolean mRideStar = false;
+    private boolean mGoMaps = false;
 
     boolean mIsFinishBooking = false; // Para saber si la carrera ya finalizo
 
@@ -213,18 +222,20 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                                     .title("Tu posición")
                                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_cascov1))
                     );
-                    // Obtener la localizacion en tiempo real
-                    mMap.moveCamera(CameraUpdateFactory.newCameraPosition(
-                            new CameraPosition.Builder()
-                                    .target(new LatLng(location.getLatitude(), location.getLongitude()))
-                                    .zoom(16f)
-                                    .build()
-                    ));
                     // Actualiza la posicion del condutor en tiempo real
                     updateLocation();
 
                     if (mIsFirstTime) {
                         mIsFirstTime = false;
+
+                        // Obtener la localizacion en tiempo real
+                        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(
+                                new CameraPosition.Builder()
+                                        .target(new LatLng(location.getLatitude(), location.getLongitude()))
+                                        .zoom(16f)
+                                        .build()
+                        ));
+
                         // Meotod para obtener los datos del pedido
                         getClientBooking();
                     }
@@ -267,9 +278,12 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         tvTime = findViewById(R.id.tv_Time);
         tvPrice = findViewById(R.id.tv_Price);
         tvCollectMoney = findViewById(R.id.tvCollectMoney);
+        
 
         btnCancel = findViewById(R.id.btnCancelBooking);
-
+        mImgGoMap = findViewById(R.id.img_GoMap);
+        mImgGoWaze = findViewById(R.id.img_Waze);
+        mImgCallClient = findViewById(R.id.img_callClient);
         mExtraDistance= getIntent().getStringExtra("km");
         mExtraClientId = getIntent().getStringExtra("idClient");
 
@@ -283,6 +297,49 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         //Toast.makeText(this, mExtraDistance, Toast.LENGTH_SHORT).show();
 
         getInfo();
+
+        mImgCallClient.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!phoneOrigin.equals("")){
+                    if (ActivityCompat.checkSelfPermission(MapDriverBooking.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(MapDriverBooking.this, new String[]{Manifest.permission.CALL_PHONE}, 101);
+                        return;
+
+                    }
+
+                    Intent intent = new Intent(Intent.ACTION_CALL);
+                    intent.setData(Uri.parse("tel:" + Objects.requireNonNull(phoneOrigin)));
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(MapDriverBooking.this, "No existe ningun número de celular", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        mImgGoMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mGoMaps == true){
+                    openGoogle(mDestinationLatLng);
+                }
+                else {
+                    openGoogle(mOrigenLatLng);
+                }
+            }
+        });
+        mImgGoWaze.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mGoMaps == true){
+                    openWaze(mDestinationLatLng);
+                }
+                else {
+                    openWaze(mOrigenLatLng);
+                }
+            }
+        });
+
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -295,6 +352,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
             public void onClick(View v) {
                 if(mIsCloseToClient){
                     startBooking();
+                    mGoMaps = true;
                 }
                 else {
                     Toast.makeText(MapDriverBooking.this,"Debes estar mas cerca a la posición de recogida",Toast.LENGTH_LONG).show();
@@ -309,6 +367,41 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
             }
         });
 
+    }
+
+    private void call(String phone) {
+        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phone));
+        startActivity(intent);
+    }
+    private void openWaze(LatLng destination) {
+        try {
+            // Launch Waze
+            String mapRequest = "https://waze.com/ul?q=" + destination.latitude + "," + destination.longitude + "&navigate=yes&zoom=17";
+            Uri gmmIntentUri = Uri.parse(mapRequest);
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.waze");
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e)
+        {
+            // If Waze is not installed, open it in Google Play
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.waze"));
+            startActivity(intent);
+        }
+    }
+    private void openGoogle(LatLng destination) {
+        try {
+            // Launch Waze
+            String mapRequest = "google.navigation:q=" + destination.latitude + "," + destination.longitude;
+            Uri gmmIntentUri = Uri.parse(mapRequest);
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            startActivity(mapIntent);
+        } catch (ActivityNotFoundException e)
+        {
+            // If Waze is not installed, open it in Google Play
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.apps.maps"));
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -571,7 +664,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                     mDestinationLatLng = new LatLng(destinationLat,destinationLng);
                     tvOrigin.setText("Recoger en: " + origin);
                     tvDestination.setText("Entregar en: " + destination);
-                    tvCollectMoney.setText(collectMoney);
+                    tvCollectMoney.setText("Valor a recaudar: " + collectMoney);
 
                     mPref = getApplicationContext().getSharedPreferences("RideStatus",MODE_PRIVATE);
                     mEditor = mPref.edit();
@@ -751,7 +844,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(snapshot.exists()){
-                    String phoneOrigin = snapshot.child("phone").getValue().toString();
+                    phoneOrigin = snapshot.child("phone").getValue().toString();
                      name = snapshot.child("name").getValue().toString();
                     String image = "";
                     if (snapshot.hasChild("image")){
@@ -792,12 +885,12 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         // Poner los botones de zoom en el mapa
-        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(false);
 
 
         mLocationRequest = new LocationRequest();
-        //mLocationRequest.setInterval(1000);
-        //mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
         // Establecer la prioridad que va a tener el gps en la actualizacion del gps
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setSmallestDisplacement(5);

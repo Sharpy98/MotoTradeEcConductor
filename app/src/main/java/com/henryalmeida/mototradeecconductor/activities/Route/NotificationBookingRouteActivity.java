@@ -155,12 +155,13 @@ public class NotificationBookingRouteActivity extends AppCompatActivity {
                             // En la base de datos cambiamos el estado del pedido
                             mBookingProviderRoute.updateStatusAndIdDriver(idClient,"accept",mAuthProvider.getId());
 
-                            Intent intent1 = new Intent(context,MapDriverBooking.class);
+                            Intent intent1 = new Intent(context,MapDriverBookingRouteActivity.class);
                             // Para que el conductor ya pueda volver a la pantalla anterior
                             intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             intent1.setAction(Intent.ACTION_RUN);
                             intent1.putExtra("idClient",idClient);
                             intent1.putExtra("km",mExtraDistance);
+                            intent1.putExtra("numRoute",numDelivery);
                             context.startActivity(intent1);
                         }
                         else {
@@ -298,8 +299,6 @@ public class NotificationBookingRouteActivity extends AppCompatActivity {
             }
         }
     }
-
-    
 
     // Cuando la actividad ya a sido creada
     @Override

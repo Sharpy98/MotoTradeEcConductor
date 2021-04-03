@@ -133,6 +133,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
 
     private String mExtraClientId;
     private String phoneOrigin;
+    private String phoneDestination;
 
 
     // Para trazar la ruta del conductor hacia el cliente
@@ -615,6 +616,20 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
                 mRideStar = true;
                 mHandler.postDelayed(runnable,1000);// Llamar al cronometro
                 getClientInfo();
+                mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                    @Override
+                    public void onInfoWindowClick(Marker marker) {
+                        if (ActivityCompat.checkSelfPermission(MapDriverBooking.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(MapDriverBooking.this, new String[]{Manifest.permission.CALL_PHONE}, 101);
+                            return;
+
+                        }
+
+                        Intent intent = new Intent(Intent.ACTION_CALL);
+                        intent.setData(Uri.parse("tel:" + Objects.requireNonNull(phoneOrigin)));
+                        startActivity(intent);
+                    }
+                });
             }
 
             @Override
@@ -784,6 +799,7 @@ public class MapDriverBooking extends AppCompatActivity implements OnMapReadyCal
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(snapshot.exists()){
 
+                    phoneDestination = snapshot.child("phoneDestination").getValue().toString();
                     if (snapshot.hasChild("pack")){
                         String nameClient = snapshot.child("pack").getValue().toString();
                         marker.setTitle(nameClient);

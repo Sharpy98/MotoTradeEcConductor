@@ -82,7 +82,6 @@ public class StackOrderAdapter extends FirebaseRecyclerAdapter<ClienttBooking, S
                 intent.putExtra("distance", clientBooking.getKm());
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 mContext.startActivity(intent);
-                Toast.makeText(mContext, "Funciono brohter", Toast.LENGTH_SHORT).show();
             }
         });
     }
